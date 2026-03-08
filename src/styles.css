@@ -305,11 +305,10 @@ img {
   background: rgba(238, 231, 216, 0.96);
 }
 
-.map-search-kind {
+.map-search-source {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 84px;
   padding: 0.35rem 0.55rem;
   border-radius: 999px;
   font-size: 0.78rem;
@@ -317,12 +316,12 @@ img {
   letter-spacing: 0.02em;
 }
 
-.map-search-kind-city {
+.map-search-source-gnis {
   background: rgba(23, 82, 58, 0.12);
   color: #17523a;
 }
 
-.map-search-kind-state-park {
+.map-search-source-dnr {
   background: rgba(164, 112, 24, 0.12);
   color: #7d5d1a;
 }
@@ -347,6 +346,11 @@ img {
   border-radius: 18px;
   background: rgba(243, 236, 223, 0.74);
   color: #4b6657;
+}
+
+.map-search-error {
+  color: #8c2415;
+  background: rgba(172, 54, 35, 0.12);
 }
 
 .photo-grid {
@@ -607,10 +611,6 @@ img {
   .map-overlay {
     right: 1rem;
     border-radius: 18px;
-  }
-
-  .map-search-kind {
-    min-width: 0;
   }
 
   .editor-screen {

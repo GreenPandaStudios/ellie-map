@@ -1,13 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useDeferredValue, useEffect, useState } from 'react';
 import type { LatLngBoundsExpression } from 'leaflet';
 import { CircleMarker, MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import type { PinEntry } from '../features/pins/pinsSlice';
 import { configureLeafletIcon } from '../lib/leafletIcon';
 import {
-  getWisconsinLocationKindLabel,
+  getWisconsinLocationSubtitle,
+  loadWisconsinLocationDataset,
   searchWisconsinLocations,
-  wisconsinLocations,
   type WisconsinLocation,
+  type WisconsinLocationDataset,
 } from '../lib/wisconsinLocations';
 
 configureLeafletIcon();
@@ -23,9 +24,6 @@ interface ExperienceMapProps {
   onMapClick: (coords: { lat: number; lng: number }) => void;
   onPinSelect: (pinId: string) => void;
 }
-
-const wisconsinCityCount = wisconsinLocations.filter((location) => location.kind === 'city').length;
-const wisconsinStateParkCount = wisconsinLocations.length - wisconsinCityCount;
 
 function MapClickHandler({ onMapClick }: Pick<ExperienceMapProps, 'onMapClick'>) {
   useMapEvents({
@@ -78,9 +76,41 @@ export function ExperienceMap({
   const [searchValue, setSearchValue] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchTarget, setSearchTarget] = useState<WisconsinLocation | null>(null);
+  const [locationDataset, setLocationDataset] = useState<WisconsinLocationDataset | null>(null);
+  const [isLoadingLocations, setIsLoadingLocations] = useState(false);
+  const [locationLoadError, setLocationLoadError] = useState('');
+  const deferredSearchValue = useDeferredValue(searchValue);
 
-  const searchResults = searchWisconsinLocations(searchValue);
-  const showSearchResults = isSearchOpen && (searchResults.length > 0 || searchValue.trim().length > 0);
+  const searchResults = locationDataset ? searchWisconsinLocations(locationDataset.locations, deferredSearchValue) : [];
+  const hasSearchQuery = searchValue.trim().length > 0;
+  const showSearchResults = isSearchOpen && (searchResults.length > 0 || hasSearchQuery || Boolean(locationLoadError));
+
+  const helperText = locationDataset
+    ? `Search ${locationDataset.counts.total.toLocaleString()} Wisconsin locations from the official GNIS and DNR indexes.`
+    : isLoadingLocations
+      ? 'Loading the official Wisconsin place index...'
+      : 'Search every current Wisconsin location in the official GNIS and DNR indexes.';
+
+  function ensureLocationDataset() {
+    if (locationDataset || isLoadingLocations) {
+      return;
+    }
+
+    setIsLoadingLocations(true);
+    setLocationLoadError('');
+
+    void loadWisconsinLocationDataset()
+      .then((dataset) => {
+        setLocationDataset(dataset);
+      })
+      .catch((error) => {
+        const message = error instanceof Error ? error.message : 'The Wisconsin location index could not be loaded.';
+        setLocationLoadError(message);
+      })
+      .finally(() => {
+        setIsLoadingLocations(false);
+      });
+  }
 
   function handlePlaceSelect(location: WisconsinLocation) {
     setSearchValue(location.name);
@@ -90,6 +120,8 @@ export function ExperienceMap({
 
   function handleSearchSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    ensureLocationDataset();
 
     if (searchResults[0]) {
       handlePlaceSelect(searchResults[0]);
@@ -138,11 +170,19 @@ export function ExperienceMap({
               onChange={(event) => {
                 setSearchValue(event.target.value);
                 setIsSearchOpen(true);
+                ensureLocationDataset();
               }}
-              onFocus={() => setIsSearchOpen(true)}
+              onFocus={() => {
+                setIsSearchOpen(true);
+                ensureLocationDataset();
+              }}
               onBlur={() => setIsSearchOpen(false)}
             />
-            <button className="primary-button map-search-submit" type="submit" disabled={searchResults.length === 0}>
+            <button
+              className="primary-button map-search-submit"
+              type="submit"
+              disabled={isLoadingLocations || Boolean(locationLoadError) || searchResults.length === 0}
+            >
               Go
             </button>
             {searchValue || searchTarget ? (
@@ -151,12 +191,14 @@ export function ExperienceMap({
               </button>
             ) : null}
           </div>
-          <p className="map-search-helper">
-            Search {wisconsinCityCount} cities and {wisconsinStateParkCount} state parks without leaving the map.
-          </p>
+          <p className="map-search-helper">{helperText}</p>
           {showSearchResults ? (
             <div className="map-search-results" role="listbox" aria-label="Wisconsin location search results">
-              {searchResults.length > 0 ? (
+              {isLoadingLocations && !locationDataset ? (
+                <p className="map-search-empty">Loading official Wisconsin location data...</p>
+              ) : locationLoadError ? (
+                <p className="map-search-empty map-search-error">{locationLoadError}</p>
+              ) : searchResults.length > 0 ? (
                 searchResults.map((location) => (
                   <button
                     key={location.id}
@@ -165,15 +207,15 @@ export function ExperienceMap({
                     onMouseDown={(event) => event.preventDefault()}
                     onClick={() => handlePlaceSelect(location)}
                   >
-                    <span className={`map-search-kind map-search-kind-${location.kind}`}>{getWisconsinLocationKindLabel(location.kind)}</span>
+                    <span className={`map-search-source map-search-source-${location.source.toLowerCase()}`}>{location.source}</span>
                     <span className="map-search-result-copy">
                       <strong>{location.name}</strong>
-                      <span>{location.region}</span>
+                      <span>{getWisconsinLocationSubtitle(location)}</span>
                     </span>
                   </button>
                 ))
               ) : (
-                <p className="map-search-empty">No matching Wisconsin city or state park found.</p>
+                <p className="map-search-empty">No matching Wisconsin location found.</p>
               )}
             </div>
           ) : null}
