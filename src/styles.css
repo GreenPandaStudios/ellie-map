@@ -229,6 +229,126 @@ img {
   box-shadow: 0 18px 42px rgba(17, 33, 24, 0.14);
 }
 
+.map-search-card {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 650;
+  width: min(360px, calc(100% - 2rem));
+  border-radius: 22px;
+  background: rgba(252, 249, 242, 0.95);
+  border: 1px solid rgba(27, 54, 41, 0.12);
+  box-shadow: 0 24px 56px rgba(17, 33, 24, 0.16);
+  backdrop-filter: blur(10px);
+}
+
+.map-search-form {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem;
+}
+
+.map-search-label {
+  color: #183426;
+  font-weight: 700;
+}
+
+.map-search-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.map-search-input {
+  flex: 1 1 200px;
+  min-width: 0;
+  border-radius: 16px;
+  border: 1px solid rgba(27, 54, 41, 0.16);
+  background: rgba(255, 252, 247, 0.94);
+  padding: 0.85rem 0.95rem;
+  color: #13271d;
+}
+
+.map-search-submit,
+.map-search-clear {
+  padding-inline: 1rem;
+}
+
+.map-search-helper {
+  margin: 0;
+  color: #4b6657;
+  font-size: 0.92rem;
+}
+
+.map-search-results {
+  display: grid;
+  gap: 0.55rem;
+  max-height: 260px;
+  overflow: auto;
+}
+
+.map-search-result {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+  width: 100%;
+  padding: 0.8rem 0.9rem;
+  border-radius: 18px;
+  border: 1px solid rgba(27, 54, 41, 0.08);
+  background: rgba(246, 240, 228, 0.76);
+  color: #173425;
+  text-align: left;
+}
+
+.map-search-result:hover {
+  background: rgba(238, 231, 216, 0.96);
+}
+
+.map-search-kind {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 84px;
+  padding: 0.35rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.map-search-kind-city {
+  background: rgba(23, 82, 58, 0.12);
+  color: #17523a;
+}
+
+.map-search-kind-state-park {
+  background: rgba(164, 112, 24, 0.12);
+  color: #7d5d1a;
+}
+
+.map-search-result-copy {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.map-search-result-copy strong {
+  font-size: 0.98rem;
+}
+
+.map-search-result-copy span {
+  color: #4b6657;
+  font-size: 0.88rem;
+}
+
+.map-search-empty {
+  margin: 0;
+  padding: 0.85rem 0.9rem;
+  border-radius: 18px;
+  background: rgba(243, 236, 223, 0.74);
+  color: #4b6657;
+}
+
 .photo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -483,9 +603,14 @@ img {
     font-size: 2.4rem;
   }
 
+  .map-search-card,
   .map-overlay {
     right: 1rem;
     border-radius: 18px;
+  }
+
+  .map-search-kind {
+    min-width: 0;
   }
 
   .editor-screen {
